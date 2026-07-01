@@ -8,10 +8,45 @@ interface IdParams {
   id: string;
 }
 
-// CREATE: registra un nuevo documento, siempre activo por defecto
+// CREATE: registra un nuevo documento, siempre activo por defecto, validando los datos
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const documento = await Usuario.create({ ...req.body, activo: true });
+    const { nombre, apellido, email, rol } = req.body;
+
+    if (!nombre || !apellido || !email || !rol) {
+      res.status(400).json({
+        error: "Faltan campos obligatorios: nombre, apellido, email y rol"
+      });
+      return;
+    }
+
+    const rolesValidos = ["ALUMNO", "DOCENTE", "ADMIN"];
+
+    if (!rolesValidos.includes(rol)) {
+      res.status(400).json({
+        error: "Rol invalido. Debe ser ALUMNO, DOCENTE o ADMIN"
+      });
+      return;
+    }
+
+    const usuarioExistente = await Usuario.findOne({ email });
+
+    if (usuarioExistente) {
+      res.status(400).json({
+        error: "Ya existe un usuario registrado con ese email"
+      });
+      return;
+    }
+
+    const documento = await Usuario.create({
+      nombre,
+      apellido,
+      email,
+      rol,
+      fechaAlta: new Date(),
+      activo: true
+    });
+
     res.status(201).json(documento);
   } catch (err) {
     next(err);
