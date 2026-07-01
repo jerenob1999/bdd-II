@@ -15,7 +15,7 @@ const EntregaSchema = new Schema<IEntrega>({
   usuarioId: { type: Schema.Types.ObjectId, required: true },
   cursoId: { type: Schema.Types.ObjectId, required: true },
   actividad: { type: String, required: true },
-  fechaEntrega: Date,
+  fechaEntrega: { type: Date, default: Date.now },
   estado: String,
   calificacion: Number,
   observaciones: String,

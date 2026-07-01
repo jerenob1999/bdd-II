@@ -12,7 +12,7 @@ export interface IInscripcion {
 const InscripcionSchema = new Schema<IInscripcion>({
   usuarioId: { type: Schema.Types.ObjectId, required: true },
   cursoId: { type: Schema.Types.ObjectId, required: true },
-  fechaInscripcion: Date,
+  fechaInscripcion: { type: Date, default: Date.now },
   estado: String,
   progreso: Number,
   activo: { type: Boolean, default: true },
