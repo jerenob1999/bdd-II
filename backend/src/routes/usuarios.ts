@@ -12,6 +12,7 @@ interface IdParams {
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { nombre, apellido, email, rol } = req.body;
+    const rolNormalizado = rol?.toUpperCase();
 
     if (!nombre || !apellido || !email || !rol) {
       res.status(400).json({
@@ -22,7 +23,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
 
     const rolesValidos = ["ALUMNO", "DOCENTE", "ADMIN"];
 
-    if (!rolesValidos.includes(rol)) {
+    if (!rolesValidos.includes(rolNormalizado)) {
       res.status(400).json({
         error: "Rol invalido. Debe ser ALUMNO, DOCENTE o ADMIN"
       });
@@ -42,7 +43,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
       nombre,
       apellido,
       email,
-      rol,
+      rol: rolNormalizado,
       fechaAlta: new Date(),
       activo: true
     });
