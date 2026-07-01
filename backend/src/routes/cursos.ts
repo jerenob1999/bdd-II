@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { isValidObjectId } from "mongoose";
 import Curso from "../models/Curso";
+import Usuario from "../models/Usuario";
 
 const router = Router();
 
@@ -8,10 +9,55 @@ interface IdParams {
   id: string;
 }
 
-// CREATE: registra un nuevo documento, siempre activo por defecto
+// CREATE: registra un nuevo curso, siempre activo por defecto, validando los datos
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const documento = await Curso.create({ ...req.body, activo: true });
+    const { nombre, descripcion, docenteId, fechaInicio, fechaFin, modulos } = req.body;
+
+    if (!nombre || !descripcion || !docenteId) {
+      res.status(400).json({
+        error: "Faltan campos obligatorios: nombre, descripcion y docenteId"
+      });
+      return;
+    }
+
+    if (!isValidObjectId(docenteId)) {
+      res.status(400).json({
+        error: "docenteId invalido"
+      });
+      return;
+    }
+
+    const docente = await Usuario.findOne({
+      _id: docenteId,
+      rol: "DOCENTE",
+      activo: true
+    });
+
+    if (!docente) {
+      res.status(400).json({
+        error: "No existe un docente activo con ese ID"
+      });
+      return;
+    }
+
+    if (modulos && !Array.isArray(modulos)) {
+      res.status(400).json({
+        error: "El campo modulos debe ser un arreglo"
+      });
+      return;
+    }
+
+    const documento = await Curso.create({
+      nombre,
+      descripcion,
+      docenteId,
+      fechaInicio: fechaInicio || new Date(),
+      fechaFin: fechaFin || null,
+      modulos: modulos || [],
+      activo: true
+    });
+
     res.status(201).json(documento);
   } catch (err) {
     next(err);
