@@ -1,7 +1,7 @@
 {
   "name": "aula-virtual-backend",
   "version": "1.0.0",
-  "description": "Backend CRUD (Node.js + Express + driver nativo de MongoDB) para AulaVirtualDB en MongoDB Atlas, respetando baja logica.",
+  "description": "Backend CRUD (Node.js + Express + Mongoose) para AulaVirtualDB en MongoDB Atlas, respetando baja logica.",
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
@@ -12,7 +12,6 @@
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "mongodb": "^7.4.0",
     "mongoose": "^9.7.3"
   },
   "devDependencies": {
