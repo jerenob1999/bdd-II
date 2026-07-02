@@ -1,6 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { isValidObjectId } from "mongoose";
 import Entrega from "../models/Entrega";
+import Usuario from "../models/Usuario";
+import Curso from "../models/Curso";
 
 const router = Router();
 
@@ -8,10 +10,88 @@ interface IdParams {
   id: string;
 }
 
-// CREATE: registra un nuevo documento, siempre activo por defecto
+// CREATE: registra una nueva entrega, siempre activa por defecto, validando los datos
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const documento = await Entrega.create({ ...req.body, activo: true });
+    const { usuarioId, cursoId, actividad, estado, calificacion, observaciones } = req.body;
+
+    if (!usuarioId || !cursoId || !actividad) {
+      res.status(400).json({
+        error: "Faltan campos obligatorios: usuarioId, cursoId y actividad"
+      });
+      return;
+    }
+
+    if (!isValidObjectId(usuarioId)) {
+      res.status(400).json({
+        error: "usuarioId invalido"
+      });
+      return;
+    }
+
+    if (!isValidObjectId(cursoId)) {
+      res.status(400).json({
+        error: "cursoId invalido"
+      });
+      return;
+    }
+
+    const alumno = await Usuario.findOne({
+      _id: usuarioId,
+      rol: "ALUMNO",
+      activo: true
+    });
+
+    if (!alumno) {
+      res.status(400).json({
+        error: "No existe un alumno activo con ese ID"
+      });
+      return;
+    }
+
+    const curso = await Curso.findOne({
+      _id: cursoId,
+      activo: true
+    });
+
+    if (!curso) {
+      res.status(400).json({
+        error: "No existe un curso activo con ese ID"
+      });
+      return;
+    }
+
+    const estadosValidos = ["PENDIENTE", "CORREGIDA"];
+
+    if (estado && !estadosValidos.includes(estado)) {
+      res.status(400).json({
+        error: "Estado invalido. Debe ser PENDIENTE o CORREGIDA"
+      });
+      return;
+    }
+
+    if (
+      calificacion !== undefined &&
+      calificacion !== null &&
+      (typeof calificacion !== "number" || calificacion < 0 || calificacion > 10)
+    ) {
+      res.status(400).json({
+        error: "La calificacion debe ser un numero entre 0 y 10"
+      });
+      return;
+    }
+
+    const documento = await Entrega.create({
+      usuarioId,
+      cursoId,
+      actividad,
+      fechaEntrega: new Date(),
+      estado: estado || "PENDIENTE",
+      calificacion: calificacion ?? null,
+      observaciones: observaciones || null,
+      activo: true
+    });
+
     res.status(201).json(documento);
   } catch (err) {
     next(err);
